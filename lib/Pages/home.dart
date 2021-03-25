@@ -7,19 +7,47 @@ import 'configure.dart';
 
 drawRect() {}
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
+  @override
+  _HomeState createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blueGrey[600],
+      appBar: AppBar(
+        backgroundColor: Colors.grey[200],
+        iconTheme: IconThemeData(color: Colors.black),
+        elevation: 0.0,
+        actions: <Widget>[
+          IconButton(
+            icon: Image.asset(
+              'assets/green_indicator.png',
+              fit: BoxFit.cover,
+              height: 20,
+              width: 20,
+            ),
+          ),
+          IconButton(
+            icon: Image.asset(
+              'assets/bar-01.png',
+              fit: BoxFit.cover,
+              height: 20,
+              width: 20,
+            ),
+          )
+        ],
+      ),
+      backgroundColor: Colors.grey[200],
       body: Column(
         children: <Widget>[
           Text(
             'Vertical Lights',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 40, fontWeight: FontWeight.bold, height: 3),
+                TextStyle(fontSize: 40, fontWeight: FontWeight.bold, height: 2),
           ),
           Padding(
               padding: EdgeInsetsDirectional.fromSTEB(60, 20, 60, 0),
@@ -34,7 +62,7 @@ class Home extends StatelessWidget {
                         child: Icon(
                           Icons.settings_rounded,
                           size: 400,
-                          color: Colors.pink[300],
+                          color: Colors.black,
                         ),
                       )),
                       FractionallySizedBox(
@@ -44,7 +72,7 @@ class Home extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(9.0),
                           ),
-                          color: Colors.orange[50],
+                          color: Colors.grey[600],
                           onPressed: () {
                             Navigator.push(
                                 context,
@@ -54,7 +82,9 @@ class Home extends StatelessWidget {
                           child: Text(
                             "Configure",
                             style: TextStyle(
-                                fontSize: 25, fontWeight: FontWeight.bold),
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
                           ),
                         ),
                       )
@@ -67,7 +97,7 @@ class Home extends StatelessWidget {
                           child: FittedBox(
                         fit: BoxFit.contain,
                         child: Icon(Icons.video_call_rounded,
-                            size: 400, color: Colors.pink[300]),
+                            size: 400, color: Colors.black),
                       )),
                       FractionallySizedBox(
                         widthFactor: .4,
@@ -76,7 +106,7 @@ class Home extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(9.0),
                           ),
-                          color: Colors.orange[50],
+                          color: Colors.grey[600],
                           onPressed: () {
                             Navigator.push(
                                 context,
@@ -86,7 +116,9 @@ class Home extends StatelessWidget {
                           child: Text(
                             "Choose a Video",
                             style: TextStyle(
-                                fontSize: 25, fontWeight: FontWeight.bold),
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
                           ),
                         ),
                       )

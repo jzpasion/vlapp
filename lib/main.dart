@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:window_size/window_size.dart';
 import './Pages/home.dart';
-import './Pages/video.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,5 +12,9 @@ void main() {
     setWindowMinSize(const Size(1600, 900));
     setWindowMaxSize(Size.infinite);
   }
-  runApp(MaterialApp(title: 'Vertical Lights', home: Home()));
+  runApp(MaterialApp(
+    title: 'Vertical Lights',
+    home: Home(),
+    debugShowCheckedModeBanner: false,
+  ));
 }
