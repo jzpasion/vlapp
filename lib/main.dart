@@ -9,8 +9,8 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     setWindowTitle('App title');
-    setWindowMinSize(const Size(1600, 900));
-    setWindowMaxSize(Size.infinite);
+    setWindowMinSize(Size(1280, 720));
+    setWindowMaxSize(Size(1280, 720));
   }
   runApp(MaterialApp(
     title: 'Vertical Lights',

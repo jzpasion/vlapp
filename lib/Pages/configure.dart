@@ -1,10 +1,14 @@
 import 'dart:developer';
-
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'advance.dart';
 import '../class/ipclass.dart' as globals;
+
+//TCP connection
+Future<Socket> future;
+Socket mySocket;
 
 ScrollController _scrollController = ScrollController();
 drawRect() {
@@ -19,25 +23,56 @@ class Configure extends StatefulWidget {
 int maxList = 69;
 
 class _ConfigureState extends State<Configure> {
-  static List getDummyList() {
-    List list = List.generate(maxList, (i) {
-      return "${i + 1}";
-    });
-    return list;
-  }
+  // static List getDummyList() {
+  //   List list = List.generate(maxList, (i) {
+  //     return "${i + 1}";
+  //   });
+  //   return list;
+  // }
 
-  static List getDrop() {
-    List<String> list = List.generate(maxList, (i) {
-      return "${i + 1}";
-    });
-    return list;
-  }
-
-  List<globals.IP> iplist = [];
+  // static List getDrop() {
+  //   List<String> list = List.generate(maxList, (i) {
+  //     return "${i + 1}";
+  //   });
+  //   return list;
+  // }
 
   String selectedIP;
-  List items = getDummyList();
-  List<String> IPAdd = getDrop();
+  List<String> IPAdd = [];
+
+  void test_1() {
+    Socket.connect('192.168.1.103', 6777).then((Socket sock) {
+      print("connected");
+      mySocket = sock;
+      mySocket.listen(dataHandler);
+      mySocket.writeln();
+
+      mySocket.writeln("mark wiliz s del moro");
+      print("sent");
+    });
+  }
+
+  void dataHandler(data) {
+    // print(data);
+    var addresses = new String.fromCharCodes(data).trim();
+    var splitAddreses = addresses.split(',');
+    for (int x = 0; x < splitAddreses.length; x++) {
+      setState(() {
+        IPAdd.add(splitAddreses[x]);
+        globals.ipobj.add(globals.IP(ipIndex: x, ipHolder: splitAddreses[x]));
+      });
+    }
+  }
+
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => test_1());
+  }
+  // addIPIndex() {
+  //   for (var i = 0; i < getDummyList().length - 1; i++) {
+  //     iplist.add(globals.IP(ipIndex: i, ipHolder: IPAdd[i]));
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -74,12 +109,47 @@ class _ConfigureState extends State<Configure> {
                 style: TextStyle(
                     fontSize: 40, fontWeight: FontWeight.bold, height: 2)),
           ),
+          Container(
+              margin: EdgeInsets.symmetric(horizontal: 70.0),
+              height: 69.0,
+              alignment: Alignment.centerRight,
+              child: Container(
+                height: 50,
+                width: 150,
+                child: RaisedButton(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(9.0),
+                  ),
+                  color: Colors.grey[600],
+                  onPressed: () => test_1(),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Retrieve IP',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.white),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Icon(
+                          Icons.autorenew_rounded,
+                          color: Colors.white,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              )),
           Scrollbar(
               child: Container(
             margin: EdgeInsets.symmetric(vertical: 7.0, horizontal: 70.0),
             height: 270.0,
             child: ListView.builder(
-                itemCount: items.length,
+                itemCount: IPAdd.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
                   return Container(
@@ -90,7 +160,7 @@ class _ConfigureState extends State<Configure> {
                           borderRadius: BorderRadius.circular(9.0)),
                       child: Column(
                         children: <Widget>[
-                          Text(items[index],
+                          Text((globals.ipobj[index].ipIndex + 1).toString(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 100,
@@ -103,22 +173,39 @@ class _ConfigureState extends State<Configure> {
                               alignedDropdown: true,
                               child: DropdownButton(
                                 hint: Text("Select IP Address"),
-                                value: selectedIP,
+                                value: globals.ipobj[index].ipHolder,
                                 onChanged: (newVal) {
                                   setState(() {
-                                    selectedIP = newVal;
+                                    var checker = globals.ipobj.firstWhere(
+                                        (element) =>
+                                            element.ipHolder == newVal);
+
+                                    checker.ipHolder =
+                                        globals.ipobj[index].ipHolder;
+                                    for (var i in globals.ipobj) {
+                                      if (i.ipIndex == index) {
+                                        i.ipHolder = newVal;
+                                      }
+                                    }
                                   });
-                                  iplist.add(globals.IP(
-                                      ipHolder: newVal, ipIndex: index));
 
-                                  var checker = iplist.firstWhere(
-                                      (element) => element.ipIndex == index);
-
-                                  if (checker == null) {
-                                    print("wala");
-                                  } else {
-                                    print("meron");
-                                  }
+                                  // if (iplist.isNotEmpty) {
+                                  //   var checker = iplist.firstWhere(
+                                  //       (element) => element.ipIndex == index,
+                                  //       orElse: () => null);
+                                  //   print(checker);
+                                  //   if (checker == null) {
+                                  //     iplist.add(globals.IP(
+                                  //         ipHolder: newVal, ipIndex: index));
+                                  //   } else {
+                                  //     print(checker.ipHolder +
+                                  //         "," +
+                                  //         checker.ipIndex.toString());
+                                  //   }
+                                  // } else {
+                                  //   iplist.add(globals.IP(
+                                  //       ipHolder: newVal, ipIndex: index));
+                                  // }
                                 },
                                 items: IPAdd.map(
                                   (val) {
@@ -146,11 +233,12 @@ class _ConfigureState extends State<Configure> {
                 ),
                 color: Colors.grey[600],
                 onPressed: () => {
-                  print("" +
-                      iplist[0].ipIndex.toString() +
-                      "," +
-                      iplist[0].ipHolder.toString() +
-                      "")
+                  print(IPAdd.length)
+                  // print("" +
+                  //     iplist[0].ipIndex.toString() +
+                  //     "," +
+                  //     iplist[0].ipHolder.toString() +
+                  //     "")
                 },
                 child: Text(
                   "Show Panel Arrangement",
