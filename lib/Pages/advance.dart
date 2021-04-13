@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import '../class/statusclass.dart';
+import '../class/tcpconnection.dart';
 
 class Advance extends StatefulWidget {
   @override
@@ -9,6 +11,38 @@ class Advance extends StatefulWidget {
 }
 
 class _AdvanceState extends State<Advance> {
+  void test_1() {
+    Socket.connect('192.168.1.103', 6777).then((Socket sock) {
+      print("connected");
+      mySocket = sock;
+      mySocket.listen(dataHandler);
+      mySocket.writeln();
+
+      mySocket.writeln("mark wiliz s del moro");
+      print("sent");
+    });
+  }
+
+  void dataHandler(data) {
+    // print(data);
+    // var addresses = new String.fromCharCodes(data).trim();
+    // var splitAddreses = addresses.split(',');
+    // for (int x = 0; x < splitAddreses.length; x++) {
+    //   setState(() {
+    //     IPAdd.add(splitAddreses[x]);
+    //     globals.ipobj.add(globals.IP(ipIndex: x, ipHolder: splitAddreses[x]));
+    //   });
+    // }
+    heatIndicator = int.parse(String.fromCharCode(data[0]));
+    lightEnvironmentIndicator = int.parse(String.fromCharCode(data[0]));
+    setState(() {
+      heatIndicatorHolder = heatIndicator;
+      lightEnvironmentIndicatorHolder = lightEnvironmentIndicator;
+    });
+  }
+
+  int heatIndicatorHolder = heatIndicator;
+  int lightEnvironmentIndicatorHolder = lightEnvironmentIndicator;
   double _Brightness = 0;
   bool TestLigtClicked = true;
   int indicator = 1;
@@ -20,16 +54,34 @@ class _AdvanceState extends State<Advance> {
         elevation: 0.0,
         actions: <Widget>[
           IconButton(
+            tooltip: 'Heat Sensor Indicator',
             icon: Image.asset(
-              'assets/green_indicator.png',
+              heatIndicatorHolder == 1
+                  ? 'assets/green_indicator.png'
+                  : heatIndicatorHolder == 2
+                      ? 'assets/yellow_indicator.png'
+                      : heatIndicatorHolder == 3
+                          ? 'assets/red_indicator.png'
+                          : () => print("error"),
               fit: BoxFit.cover,
               height: 20,
               width: 20,
             ),
           ),
           IconButton(
+            tooltip: 'Light Sensor Indicator',
             icon: Image.asset(
-              'assets/bar-01.png',
+              lightEnvironmentIndicatorHolder == 1
+                  ? 'assets/bar-01.png'
+                  : lightEnvironmentIndicatorHolder == 2
+                      ? 'assets/bar-02.png'
+                      : lightEnvironmentIndicatorHolder == 3
+                          ? 'assets/bar-03.png'
+                          : lightEnvironmentIndicatorHolder == 4
+                              ? 'assets/bar-04.png'
+                              : lightEnvironmentIndicatorHolder == 5
+                                  ? 'assets/bar-05.png'
+                                  : () => print("Error"),
               fit: BoxFit.cover,
               height: 20,
               width: 20,
@@ -106,7 +158,7 @@ class _AdvanceState extends State<Advance> {
                                   label: _Brightness.round().toString(),
                                   onChanged: (double value) {
                                     setState(() {
-                                      print(value);
+                                      // print(value);
                                       _Brightness = value;
                                       if (value >= 0 && value < 20) {
                                         setState(() {
