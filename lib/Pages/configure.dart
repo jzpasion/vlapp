@@ -52,15 +52,15 @@ class _ConfigureState extends State<Configure> {
   }
 
   void dataHandler(data) {
-    print(data);
-    var addresses = new String.fromCharCodes(data).trim();
-    var splitAddreses = addresses.split(',');
-    for (int x = 0; x < splitAddreses.length; x++) {
-      setState(() {
-        IPAdd.add(splitAddreses[x]);
-        globals.ipobj.add(globals.IP(ipIndex: x, ipHolder: splitAddreses[x]));
-      });
-    }
+    // print(data);
+    // var addresses = new String.fromCharCodes(data).trim();
+    // var splitAddreses = addresses.split(',');
+    // for (int x = 0; x < splitAddreses.length; x++) {
+    //   setState(() {
+    //     IPAdd.add(splitAddreses[x]);
+    //     globals.ipobj.add(globals.IP(ipIndex: x, ipHolder: splitAddreses[x]));
+    //   });
+    // }
     heatIndicator = int.parse(String.fromCharCode(data[0]));
     lightEnvironmentIndicator = int.parse(String.fromCharCode(data[0]));
     setState(() {
@@ -146,35 +146,38 @@ class _ConfigureState extends State<Configure> {
                     width: 350,
                     child: Row(
                       children: <Widget>[
-                        ButtonTheme(
-                            height: 50,
-                            child: RaisedButton(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(9.0),
-                              ),
-                              color: Colors.grey[600],
-                              onPressed: () => test_1(),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Retrieve IP',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                        color: Colors.white),
+                        Tooltip(
+                            message: "Test",
+                            child: ButtonTheme(
+                                height: 50,
+                                child: RaisedButton(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(9.0),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 10),
-                                    child: Icon(
-                                      Icons.autorenew_rounded,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            )),
+                                  color: Colors.grey[600],
+                                  onPressed: () => test_1(),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Retrieve IP',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                            color: Colors.white),
+                                      ),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 10),
+                                        child: Icon(
+                                          Icons.autorenew_rounded,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ))),
                         Padding(
                             padding: EdgeInsets.only(left: 20),
                             child: ButtonTheme(
@@ -321,7 +324,7 @@ class _ConfigureState extends State<Configure> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(top: 80),
+              padding: EdgeInsets.only(top: 65),
               child: Row(
                 children: <Widget>[
                   Expanded(

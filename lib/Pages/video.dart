@@ -6,6 +6,8 @@ import 'package:filepicker_windows/filepicker_windows.dart';
 import '../class/statusclass.dart';
 import '../class/ipclass.dart' as globals;
 import '../class/tcpconnection.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
 
 var _controller = TextEditingController();
 
@@ -32,6 +34,50 @@ class VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<VideoPage> {
+  List<String> _videoInfo = [];
+  int _index = 0;
+  Future<List<String>> _loadNames() async {
+    List<String> videoInfo = [];
+    await rootBundle.loadString('assets/dataFiles/data.txt').then((q) {
+      for (String i in LineSplitter().convert(q)) {
+        videoInfo.add(i);
+      }
+    });
+    return videoInfo;
+  }
+
+  Future<File> get _localFile async {
+    return File('assets/dataFiles/data.txt');
+  }
+
+  Future<File> writeData(String pass) async {
+    final file = await _localFile;
+    return file.writeAsString(pass);
+  }
+
+  test() async {
+    String passHolder;
+    // List<String> videoInfo = await _loadNames();
+    // setState(() {
+    //   _videoInfo = videoInfo;
+    // });
+
+    // for (var x in _videoInfo) {
+    //   print(x);
+    // }
+    //
+    for (int x = 1; x < 11; x++) {
+      if (passHolder == null) {
+        passHolder = '$x\n';
+      } else if (x == 10) {
+        passHolder = '$passHolder$x';
+      } else {
+        passHolder = '$passHolder$x\n';
+      }
+    }
+    writeData(passHolder);
+  }
+
   int lightEnvironmentIndicatorHolder = lightEnvironmentIndicator;
   int heatIndicatorHolder = heatIndicator;
   void test_1() {
@@ -124,7 +170,7 @@ class _VideoPageState extends State<VideoPage> {
               Center(
                 child: Padding(
                     padding: EdgeInsets.only(
-                      top: 100,
+                      top: 0,
                     ),
                     child: Text(
                       'Choose a Video',
@@ -132,8 +178,41 @@ class _VideoPageState extends State<VideoPage> {
                           fontSize: 40, fontWeight: FontWeight.bold, height: 2),
                     )),
               ),
+              Padding(
+                padding: EdgeInsets.all(20),
+                child: Container(
+                  height: 250,
+                  width: 500,
+                  child: Center(
+                    child: FractionallySizedBox(
+                      child: PageView.builder(
+                        itemCount: 10,
+                        controller: PageController(viewportFraction: 0.7),
+                        onPageChanged: (int index) =>
+                            setState(() => _index = index),
+                        itemBuilder: (_, i) {
+                          return Transform.scale(
+                            scale: i == _index ? 1 : 0.9,
+                            child: Card(
+                              elevation: 6,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
+                              child: Center(
+                                child: Text(
+                                  "Card ${i + 1}",
+                                  style: TextStyle(fontSize: 32),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               Container(
-                height: 150,
+                height: 200,
                 width: 550,
                 child: Card(
                   color: Colors.grey[600],
@@ -143,7 +222,7 @@ class _VideoPageState extends State<VideoPage> {
                     children: [
                       Padding(
                           padding:
-                              EdgeInsetsDirectional.fromSTEB(30, 10, 30, 10),
+                              EdgeInsetsDirectional.fromSTEB(30, 10, 30, 40),
                           child: new Theme(
                             data: new ThemeData(primaryColor: Colors.black),
                             child: TextField(
@@ -166,14 +245,14 @@ class _VideoPageState extends State<VideoPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(9.0),
                           ),
-                          color: Colors.black,
-                          onPressed: drawRect,
+                          color: Colors.white,
+                          onPressed: test,
                           child: Text(
-                            "Upload",
+                            "Save",
                             style: TextStyle(
                                 fontSize: 25,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white),
+                                color: Colors.black),
                           ),
                         ),
                       )
