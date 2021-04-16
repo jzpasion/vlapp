@@ -8,6 +8,9 @@ import '../class/ipclass.dart' as globals;
 import '../class/tcpconnection.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
+import 'package:flutter/services.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 var _controller = TextEditingController();
 
@@ -36,6 +39,8 @@ class VideoPage extends StatefulWidget {
 class _VideoPageState extends State<VideoPage> {
   List<String> _videoInfo = [];
   int _index = 0;
+  int iCount = 2;
+
   Future<List<String>> _loadNames() async {
     List<String> videoInfo = [];
     await rootBundle.loadString('assets/dataFiles/data.txt').then((q) {
@@ -185,28 +190,157 @@ class _VideoPageState extends State<VideoPage> {
                   width: 500,
                   child: Center(
                     child: FractionallySizedBox(
-                      child: PageView.builder(
-                        itemCount: 10,
-                        controller: PageController(viewportFraction: 0.7),
-                        onPageChanged: (int index) =>
-                            setState(() => _index = index),
-                        itemBuilder: (_, i) {
-                          return Transform.scale(
-                            scale: i == _index ? 1 : 0.9,
-                            child: Card(
-                              elevation: 6,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20)),
-                              child: Center(
-                                child: Text(
-                                  "Card ${i + 1}",
-                                  style: TextStyle(fontSize: 32),
-                                ),
+                      child: iCount == 0
+                          ? Container(
+                              child: FittedBox(
+                              fit: BoxFit.contain,
+                              child: Icon(
+                                Icons.settings_rounded,
+                                size: 300,
+                                color: Colors.black,
                               ),
+                            ))
+                          : PageView.builder(
+                              itemCount: iCount,
+                              controller: PageController(viewportFraction: 0.7),
+                              onPageChanged: (int index) =>
+                                  setState(() => _index = index),
+                              itemBuilder: (_, i) {
+                                return Transform.scale(
+                                  scale: i == _index ? 1 : 0.9,
+                                  child: Card(
+                                      clipBehavior: Clip.antiAlias,
+                                      elevation: 6,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20)),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          ListTile(
+                                            leading: IconButton(
+                                                splashRadius: 30,
+                                                iconSize: 30,
+                                                color: Colors.black,
+                                                icon: Icon(Icons
+                                                    .play_circle_fill_rounded),
+                                                onPressed: () => {}),
+                                            title: Text('Card title $i'),
+                                            subtitle: Text(
+                                              '' +
+                                                  DateTime.now()
+                                                      .month
+                                                      .toString() +
+                                                  '/' +
+                                                  DateTime.now()
+                                                      .day
+                                                      .toString() +
+                                                  '/' +
+                                                  DateTime.now()
+                                                      .year
+                                                      .toString(),
+                                              style: TextStyle(
+                                                  color: Colors.black
+                                                      .withOpacity(0.6)),
+                                            ),
+                                          ),
+                                          Container(
+                                            alignment: Alignment.center,
+                                            height: 40,
+                                            child: FractionallySizedBox(
+                                              widthFactor: 0.5,
+                                              child: RaisedButton(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          9.0),
+                                                ),
+                                                color: Colors.grey[600],
+                                                onPressed: () {
+                                                  showSimpleNotification(
+                                                      Text("Set Time From"),
+                                                      background: Colors.green,
+                                                      position:
+                                                          NotificationPosition
+                                                              .bottom);
+                                                  DatePicker.showTimePicker(
+                                                    context,
+                                                    showSecondsColumn: false,
+                                                    currentTime: DateTime.now(),
+                                                    onConfirm: (time) {
+                                                      showSimpleNotification(
+                                                          Text("Set Time To"),
+                                                          background:
+                                                              Colors.green,
+                                                          position:
+                                                              NotificationPosition
+                                                                  .bottom);
+                                                      DatePicker.showTimePicker(
+                                                        context,
+                                                        showSecondsColumn:
+                                                            false,
+                                                        currentTime:
+                                                            DateTime.now(),
+                                                        onConfirm: (time) {
+                                                          print(time.hour);
+                                                        },
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                                child: Text(
+                                                  "Set Time",
+                                                  style: TextStyle(
+                                                      fontSize: 15,
+                                                      color: Colors.white),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                              padding: EdgeInsets.fromLTRB(
+                                                  30, 5, 30, 5),
+                                              child: Text(
+                                                'From: ',
+                                                style: TextStyle(fontSize: 15),
+                                              )),
+                                          Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 30, vertical: 5),
+                                              child: Text('To: ',
+                                                  style:
+                                                      TextStyle(fontSize: 15))),
+                                          ButtonBar(
+                                            alignment: MainAxisAlignment.center,
+                                            children: [
+                                              IconButton(
+                                                  tooltip: 'Upload new video',
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 15),
+                                                  splashRadius: 30,
+                                                  iconSize: 35,
+                                                  color: Colors.black,
+                                                  icon: Icon(
+                                                      Icons.upload_rounded),
+                                                  onPressed: () => {}),
+                                              IconButton(
+                                                  tooltip: 'Delete',
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 15),
+                                                  splashRadius: 30,
+                                                  iconSize: 30,
+                                                  color: Colors.red,
+                                                  icon: Icon(
+                                                      Icons.delete_rounded),
+                                                  onPressed: () => {}),
+                                            ],
+                                          )
+                                        ],
+                                      )),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
                     ),
                   ),
                 ),
@@ -222,11 +356,12 @@ class _VideoPageState extends State<VideoPage> {
                     children: [
                       Padding(
                           padding:
-                              EdgeInsetsDirectional.fromSTEB(30, 10, 30, 40),
+                              EdgeInsetsDirectional.fromSTEB(30, 10, 30, 0),
                           child: new Theme(
                             data: new ThemeData(primaryColor: Colors.black),
                             child: TextField(
-                              style: TextStyle(color: Colors.white),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 20),
                               controller: _controller,
                               readOnly: true,
                               decoration: InputDecoration(
@@ -238,24 +373,37 @@ class _VideoPageState extends State<VideoPage> {
                               ),
                             ),
                           )),
-                      FractionallySizedBox(
-                        widthFactor: .8,
-                        child: RaisedButton(
-                          padding: EdgeInsets.fromLTRB(0, 15, 0, 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9.0),
-                          ),
-                          color: Colors.white,
-                          onPressed: test,
-                          child: Text(
-                            "Save",
-                            style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black),
-                          ),
-                        ),
-                      )
+                      Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(30, 5, 30, 15),
+                        child: new Theme(
+                            data: new ThemeData(primaryColor: Colors.black),
+                            child: TextField(
+                              textAlign: TextAlign.center,
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 20),
+                              decoration:
+                                  InputDecoration(hintText: 'Enter File Name'),
+                            )),
+                      ),
+                      ButtonTheme(
+                          height: 50,
+                          child: SizedBox(
+                            width: 300,
+                            child: RaisedButton(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(9.0),
+                              ),
+                              color: Colors.white,
+                              onPressed: test,
+                              child: Text(
+                                "Save",
+                                style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              ),
+                            ),
+                          ))
                     ],
                   ),
                 ),
