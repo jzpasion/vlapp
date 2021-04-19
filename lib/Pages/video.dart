@@ -3,16 +3,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:filepicker_windows/filepicker_windows.dart';
+import 'package:verticalligthtsapp/class/videoPageClass.dart';
 import '../class/statusclass.dart';
 import '../class/ipclass.dart' as globals;
 import '../class/tcpconnection.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
+import 'loading.dart' as load;
 
 var _controller = TextEditingController();
+var _titleController = TextEditingController();
+var cancelStatus = false;
 
 FileOpen() {
   final file = OpenFilePicker()
@@ -27,64 +31,116 @@ FileOpen() {
   }
 }
 
-drawRect() {
-  print('aa');
-}
-
 class VideoPage extends StatefulWidget {
   @override
   _VideoPageState createState() => _VideoPageState();
 }
 
 class _VideoPageState extends State<VideoPage> {
-  List<String> _videoInfo = [];
   int _index = 0;
-  int iCount = 2;
-
-  Future<List<String>> _loadNames() async {
-    List<String> videoInfo = [];
-    await rootBundle.loadString('assets/dataFiles/data.txt').then((q) {
-      for (String i in LineSplitter().convert(q)) {
-        videoInfo.add(i);
-      }
-    });
-    return videoInfo;
-  }
-
-  Future<File> get _localFile async {
-    return File('assets/dataFiles/data.txt');
-  }
-
-  Future<File> writeData(String pass) async {
-    final file = await _localFile;
-    return file.writeAsString(pass);
-  }
-
-  test() async {
-    String passHolder;
-    // List<String> videoInfo = await _loadNames();
-    // setState(() {
-    //   _videoInfo = videoInfo;
-    // });
-
-    // for (var x in _videoInfo) {
-    //   print(x);
-    // }
-    //
-    for (int x = 1; x < 11; x++) {
-      if (passHolder == null) {
-        passHolder = '$x\n';
-      } else if (x == 10) {
-        passHolder = '$passHolder$x';
-      } else {
-        passHolder = '$passHolder$x\n';
-      }
-    }
-    writeData(passHolder);
-  }
+  List<VideoClass> videoHolderList = [];
+  String enterTitle;
+  List<String> _savedNames = [];
+  List<String> _savedDates = [];
+  List<String> _savedFrom = [];
+  List<String> _savedTo = [];
 
   int lightEnvironmentIndicatorHolder = lightEnvironmentIndicator;
   int heatIndicatorHolder = heatIndicator;
+
+//Retrieve from notepad
+  loadFiles() async {
+    videoList.removeRange(0, videoList.length);
+    await rootBundle.loadString('assets/dataFiles/name.txt').then((q) {
+      for (String i in LineSplitter().convert(q)) {
+        _savedNames.add(i);
+      }
+    });
+    await rootBundle.loadString('assets/dataFiles/date.txt').then((q) {
+      for (String i in LineSplitter().convert(q)) {
+        _savedDates.add(i);
+      }
+    });
+    await rootBundle.loadString('assets/dataFiles/toDate.txt').then((q) {
+      for (String i in LineSplitter().convert(q)) {
+        _savedTo.add(i);
+      }
+    });
+    await rootBundle.loadString('assets/dataFiles/fromDate.txt').then((q) {
+      for (String i in LineSplitter().convert(q)) {
+        _savedFrom.add(i);
+      }
+    });
+    //print(_savedNames.length);
+    for (int x = 0; x < _savedNames.length; x++) {
+      videoList.add(VideoClass(
+          titleName: _savedNames[x],
+          dateMod: _savedDates[x],
+          fromDate: _savedFrom[x],
+          toDate: _savedTo[x]));
+    }
+    setState(() {
+      videoHolderList = videoList;
+    });
+  }
+
+  showDialogPopup(int pos) async {
+    var resut = await showDialog(
+      context: this.context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+            onWillPop: () async {
+              return false;
+            },
+            child: AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                backgroundColor: Colors.white,
+                content: PopUp(text: "text")));
+      },
+    );
+    print(resut);
+
+    // load.DialogBuilder(context).showLoadingIndicator(
+    //     'Are you sure you want to delete ' +
+    //         videoHolderList[pos].titleName +
+    //         '?',
+    //     1);
+  }
+
+  deleteVideo(int pos) {
+    String nameHolder;
+    String dateHolder;
+    String toHolder;
+    String fromHolder;
+    setState(() {
+      videoHolderList.removeAt(pos);
+      for (int x = 0; x < videoHolderList.length; x++) {
+        if (x == 0) {
+          nameHolder = videoHolderList[x].titleName;
+          dateHolder = videoHolderList[x].dateMod;
+          toHolder = videoHolderList[x].toDate;
+          fromHolder = videoHolderList[x].fromDate;
+        } else if (x == videoHolderList.length - 1) {
+          nameHolder = '$nameHolder' + videoHolderList[x].titleName;
+          dateHolder = '$dateHolder' + videoHolderList[x].dateMod;
+          toHolder = '$toHolder' + videoHolderList[x].toDate;
+          fromHolder = '$fromHolder' + videoHolderList[x].fromDate;
+        } else {
+          nameHolder = '$nameHolder' + videoHolderList[x].titleName + '\n';
+          dateHolder = '$dateHolder' + videoHolderList[x].dateMod + '\n';
+          toHolder = '$toHolder' + videoHolderList[x].toDate + '\n';
+          fromHolder = '$fromHolder' + videoHolderList[x].fromDate + '\n';
+        }
+      }
+      writeName(nameHolder);
+      writeDate(dateHolder);
+      writeTo(toHolder);
+      writeFrom(fromHolder);
+    });
+  }
+
   void test_1() {
     Socket.connect('192.168.1.103', 6777).then((Socket sock) {
       print("connected");
@@ -95,6 +151,53 @@ class _VideoPageState extends State<VideoPage> {
       mySocket.writeln("mark wiliz s del moro");
       print("sent");
     });
+  }
+
+  printTest() {
+    String nameHolder;
+    String dateHolder;
+    String toHolder;
+    String fromHolder;
+
+    if (_titleController.text.isEmpty) {
+      notifMessageRed("Please Enter a Title!");
+      print(videoList.length);
+    } else {
+      setState(() {
+        videoHolderList.add(VideoClass(
+            titleName: _titleController.text,
+            dateMod: '' +
+                DateTime.now().month.toString() +
+                '/' +
+                DateTime.now().day.toString() +
+                '/' +
+                DateTime.now().year.toString(),
+            fromDate: "Not Set",
+            toDate: "Not Set"));
+      });
+      for (int x = 0; x < videoHolderList.length; x++) {
+        if (x == 0) {
+          nameHolder = videoHolderList[x].titleName;
+          dateHolder = videoHolderList[x].dateMod;
+          toHolder = videoHolderList[x].toDate;
+          fromHolder = videoHolderList[x].fromDate;
+        } else if (x == videoHolderList.length - 1) {
+          nameHolder = '$nameHolder' + videoHolderList[x].titleName;
+          dateHolder = '$dateHolder' + videoHolderList[x].dateMod;
+          toHolder = '$toHolder' + videoHolderList[x].toDate;
+          fromHolder = '$fromHolder' + videoHolderList[x].fromDate;
+        } else {
+          nameHolder = '$nameHolder' + videoHolderList[x].titleName + '\n';
+          dateHolder = '$dateHolder' + videoHolderList[x].dateMod + '\n';
+          toHolder = '$toHolder' + videoHolderList[x].toDate + '\n';
+          fromHolder = '$fromHolder' + videoHolderList[x].fromDate + '\n';
+        }
+      }
+      writeName(nameHolder);
+      writeDate(dateHolder);
+      writeTo(toHolder);
+      writeFrom(fromHolder);
+    }
   }
 
   void dataHandler(data) {
@@ -115,10 +218,10 @@ class _VideoPageState extends State<VideoPage> {
     });
   }
 
-  // void initState() {
-  //   super.initState();
-  //   WidgetsBinding.instance.addPostFrameCallback((_) => test_1());
-  // }
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => loadFiles());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +293,7 @@ class _VideoPageState extends State<VideoPage> {
                   width: 500,
                   child: Center(
                     child: FractionallySizedBox(
-                      child: iCount == 0
+                      child: videoHolderList.length == 0
                           ? Container(
                               child: FittedBox(
                               fit: BoxFit.contain,
@@ -201,7 +304,7 @@ class _VideoPageState extends State<VideoPage> {
                               ),
                             ))
                           : PageView.builder(
-                              itemCount: iCount,
+                              itemCount: videoHolderList.length,
                               controller: PageController(viewportFraction: 0.7),
                               onPageChanged: (int index) =>
                                   setState(() => _index = index),
@@ -226,20 +329,10 @@ class _VideoPageState extends State<VideoPage> {
                                                 icon: Icon(Icons
                                                     .play_circle_fill_rounded),
                                                 onPressed: () => {}),
-                                            title: Text('Card title $i'),
+                                            title: Text(
+                                                videoHolderList[i].titleName),
                                             subtitle: Text(
-                                              '' +
-                                                  DateTime.now()
-                                                      .month
-                                                      .toString() +
-                                                  '/' +
-                                                  DateTime.now()
-                                                      .day
-                                                      .toString() +
-                                                  '/' +
-                                                  DateTime.now()
-                                                      .year
-                                                      .toString(),
+                                              videoHolderList[i].dateMod,
                                               style: TextStyle(
                                                   color: Colors.black
                                                       .withOpacity(0.6)),
@@ -302,13 +395,16 @@ class _VideoPageState extends State<VideoPage> {
                                               padding: EdgeInsets.fromLTRB(
                                                   30, 5, 30, 5),
                                               child: Text(
-                                                'From: ',
+                                                'From: ' +
+                                                    videoHolderList[i].fromDate,
                                                 style: TextStyle(fontSize: 15),
                                               )),
                                           Padding(
                                               padding: EdgeInsets.symmetric(
                                                   horizontal: 30, vertical: 5),
-                                              child: Text('To: ',
+                                              child: Text(
+                                                  'To:       ' +
+                                                      videoHolderList[i].toDate,
                                                   style:
                                                       TextStyle(fontSize: 15))),
                                           ButtonBar(
@@ -319,7 +415,7 @@ class _VideoPageState extends State<VideoPage> {
                                                   padding: EdgeInsets.symmetric(
                                                       horizontal: 15),
                                                   splashRadius: 30,
-                                                  iconSize: 35,
+                                                  iconSize: 30,
                                                   color: Colors.black,
                                                   icon: Icon(
                                                       Icons.upload_rounded),
@@ -333,7 +429,8 @@ class _VideoPageState extends State<VideoPage> {
                                                   color: Colors.red,
                                                   icon: Icon(
                                                       Icons.delete_rounded),
-                                                  onPressed: () => {}),
+                                                  onPressed: () =>
+                                                      showDialogPopup(i)),
                                             ],
                                           )
                                         ],
@@ -378,6 +475,7 @@ class _VideoPageState extends State<VideoPage> {
                         child: new Theme(
                             data: new ThemeData(primaryColor: Colors.black),
                             child: TextField(
+                              controller: _titleController,
                               textAlign: TextAlign.center,
                               style:
                                   TextStyle(color: Colors.white, fontSize: 20),
@@ -394,7 +492,7 @@ class _VideoPageState extends State<VideoPage> {
                                 borderRadius: BorderRadius.circular(9.0),
                               ),
                               color: Colors.white,
-                              onPressed: test,
+                              onPressed: printTest,
                               child: Text(
                                 "Save",
                                 style: TextStyle(
@@ -411,6 +509,71 @@ class _VideoPageState extends State<VideoPage> {
             ],
           ),
         ));
+  }
+
+  void _popNavigationResult(BuildContext context, dynamic result) {
+    Navigator.pop(context, result);
+  }
+}
+
+class PopUp extends StatelessWidget {
+  PopUp({this.text = ''});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    var displayedText = text;
+
+    return WillPopScope(
+      onWillPop: () async {
+        _popNavigationResult(context, "1");
+        return false;
+      },
+      child: Container(
+          padding: EdgeInsets.all(10),
+          color: Colors.white,
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [_getText(displayedText), _getButtons(context)])),
+    );
+  }
+
+  Text _getText(String displayedText) {
+    return Text(
+      displayedText,
+      style: TextStyle(
+          color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+      textAlign: TextAlign.left,
+    );
+  }
+
+  Padding _getButtons(context) {
+    return Padding(
+      padding: EdgeInsets.only(top: 30),
+      child: ButtonBar(
+        children: <Widget>[
+          FlatButton(
+            child: Text(
+              'No',
+              style: TextStyle(color: Colors.black, fontSize: 15),
+            ),
+            color: Colors.transparent,
+            onPressed: () {
+              _popNavigationResult(context, "0");
+            },
+          ),
+          FlatButton(
+            child: Text('Yes', style: TextStyle(color: Colors.black)),
+            color: Colors.transparent,
+            onPressed: () {
+              _popNavigationResult(context, "1");
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   void _popNavigationResult(BuildContext context, dynamic result) {

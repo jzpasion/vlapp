@@ -47,6 +47,12 @@ void notifMessage(mes) {
       background: Colors.green, position: NotificationPosition.bottom);
 }
 
+void notifMessageRed(mes) {
+  // show a notification at top of screen.
+  showSimpleNotification(Text(mes.toString()),
+      background: Colors.red, position: NotificationPosition.bottom);
+}
+
 void connecting() {
   // show a notification at top of screen.
   showSimpleNotification(Text("Connecting to server..."),
