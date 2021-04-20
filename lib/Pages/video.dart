@@ -37,6 +37,10 @@ class VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<VideoPage> {
+  bool titleTaken = false;
+  bool showTimeOption = true;
+  int toHolder;
+  int fromHolder;
   int _index = 0;
   List<VideoClass> videoHolderList = [];
   String enterTitle;
@@ -50,42 +54,47 @@ class _VideoPageState extends State<VideoPage> {
 
 //Retrieve from notepad
   loadFiles() async {
-    videoList.removeRange(0, videoList.length);
-    await rootBundle.loadString('assets/dataFiles/name.txt').then((q) {
-      for (String i in LineSplitter().convert(q)) {
-        _savedNames.add(i);
+    if (videoList.isNotEmpty) {
+      setState(() {
+        videoHolderList = videoList;
+      });
+    } else {
+      await rootBundle.loadString('assets/dataFiles/name.txt').then((q) {
+        for (String i in LineSplitter().convert(q)) {
+          _savedNames.add(i);
+        }
+      });
+      await rootBundle.loadString('assets/dataFiles/date.txt').then((q) {
+        for (String i in LineSplitter().convert(q)) {
+          _savedDates.add(i);
+        }
+      });
+      await rootBundle.loadString('assets/dataFiles/toDate.txt').then((q) {
+        for (String i in LineSplitter().convert(q)) {
+          _savedTo.add(i);
+        }
+      });
+      await rootBundle.loadString('assets/dataFiles/fromDate.txt').then((q) {
+        for (String i in LineSplitter().convert(q)) {
+          _savedFrom.add(i);
+        }
+      });
+      //print(_savedNames.length);
+      for (int x = 0; x < _savedNames.length; x++) {
+        videoList.add(VideoClass(
+            titleName: _savedNames[x],
+            dateMod: _savedDates[x],
+            fromDate: _savedFrom[x],
+            toDate: _savedTo[x]));
       }
-    });
-    await rootBundle.loadString('assets/dataFiles/date.txt').then((q) {
-      for (String i in LineSplitter().convert(q)) {
-        _savedDates.add(i);
-      }
-    });
-    await rootBundle.loadString('assets/dataFiles/toDate.txt').then((q) {
-      for (String i in LineSplitter().convert(q)) {
-        _savedTo.add(i);
-      }
-    });
-    await rootBundle.loadString('assets/dataFiles/fromDate.txt').then((q) {
-      for (String i in LineSplitter().convert(q)) {
-        _savedFrom.add(i);
-      }
-    });
-    //print(_savedNames.length);
-    for (int x = 0; x < _savedNames.length; x++) {
-      videoList.add(VideoClass(
-          titleName: _savedNames[x],
-          dateMod: _savedDates[x],
-          fromDate: _savedFrom[x],
-          toDate: _savedTo[x]));
+      setState(() {
+        videoHolderList = videoList;
+      });
     }
-    setState(() {
-      videoHolderList = videoList;
-    });
   }
 
   showDialogPopup(int pos) async {
-    var resut = await showDialog(
+    var result = await showDialog(
       context: this.context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -97,10 +106,17 @@ class _VideoPageState extends State<VideoPage> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(8.0))),
                 backgroundColor: Colors.white,
-                content: PopUp(text: "text")));
+                content: PopUp(
+                    text: "Are you sure you want to delete " +
+                        videoHolderList[pos].titleName +
+                        "?")));
       },
     );
-    print(resut);
+    if (result) {
+      deleteVideo(pos);
+    } else {
+      print("canceled");
+    }
 
     // load.DialogBuilder(context).showLoadingIndicator(
     //     'Are you sure you want to delete ' +
@@ -109,36 +125,83 @@ class _VideoPageState extends State<VideoPage> {
     //     1);
   }
 
-  deleteVideo(int pos) {
+  timeCheckList(from, to) {
+    bool matched = false;
+    for (var x in videoList) {
+      if (x.fromDate != "Not Set" && x.toDate != "Not Set") {
+        if (from >= int.parse(x.fromDate) && from <= int.parse(x.toDate)) {
+          matched = true;
+          break;
+        }
+        if (to >= int.parse(x.fromDate) && to <= int.parse(x.toDate)) {
+          matched = true;
+          break;
+        }
+      }
+    }
+    return matched;
+  }
+
+  timeChecker(int from, int to, int index) {
+    if (from >= to) {
+      notifMessageRed("Invalid Time!");
+      setState(() {
+        showTimeOption = false;
+      });
+    } else if (timeCheckList(from, to)) {
+      notifMessageRed("Time Conflict!");
+      setState(() {
+        showTimeOption = false;
+      });
+    }
+  }
+
+  titleChecker() {
+    bool matched = false;
+    for (var e in videoHolderList) {
+      if (e.titleName == _titleController.text) {
+        matched = true;
+      }
+    }
+
+    return matched;
+  }
+
+  saveToFileLogic() {
     String nameHolder;
     String dateHolder;
     String toHolder;
     String fromHolder;
-    setState(() {
-      videoHolderList.removeAt(pos);
-      for (int x = 0; x < videoHolderList.length; x++) {
-        if (x == 0) {
-          nameHolder = videoHolderList[x].titleName;
-          dateHolder = videoHolderList[x].dateMod;
-          toHolder = videoHolderList[x].toDate;
-          fromHolder = videoHolderList[x].fromDate;
-        } else if (x == videoHolderList.length - 1) {
-          nameHolder = '$nameHolder' + videoHolderList[x].titleName;
-          dateHolder = '$dateHolder' + videoHolderList[x].dateMod;
-          toHolder = '$toHolder' + videoHolderList[x].toDate;
-          fromHolder = '$fromHolder' + videoHolderList[x].fromDate;
-        } else {
-          nameHolder = '$nameHolder' + videoHolderList[x].titleName + '\n';
-          dateHolder = '$dateHolder' + videoHolderList[x].dateMod + '\n';
-          toHolder = '$toHolder' + videoHolderList[x].toDate + '\n';
-          fromHolder = '$fromHolder' + videoHolderList[x].fromDate + '\n';
-        }
+    for (int x = 0; x < videoHolderList.length; x++) {
+      if (x == 0) {
+        nameHolder = videoHolderList[x].titleName + '\n';
+        dateHolder = videoHolderList[x].dateMod + '\n';
+        toHolder = videoHolderList[x].toDate + '\n';
+        fromHolder = videoHolderList[x].fromDate + '\n';
+      } else if (x == videoHolderList.length - 1) {
+        nameHolder = '$nameHolder' + videoHolderList[x].titleName;
+        dateHolder = '$dateHolder' + videoHolderList[x].dateMod;
+        toHolder = '$toHolder' + videoHolderList[x].toDate;
+        fromHolder = '$fromHolder' + videoHolderList[x].fromDate;
+      } else {
+        nameHolder = '$nameHolder' + videoHolderList[x].titleName + '\n';
+        dateHolder = '$dateHolder' + videoHolderList[x].dateMod + '\n';
+        toHolder = '$toHolder' + videoHolderList[x].toDate + '\n';
+        fromHolder = '$fromHolder' + videoHolderList[x].fromDate + '\n';
       }
-      writeName(nameHolder);
-      writeDate(dateHolder);
-      writeTo(toHolder);
-      writeFrom(fromHolder);
+    }
+    writeName(nameHolder);
+    writeDate(dateHolder);
+    writeTo(toHolder);
+    writeFrom(fromHolder);
+  }
+
+  deleteVideo(int pos) {
+    videoList.removeAt(pos);
+    setState(() {
+      videoHolderList = videoList;
     });
+    saveToFileLogic();
   }
 
   void test_1() {
@@ -153,50 +216,38 @@ class _VideoPageState extends State<VideoPage> {
     });
   }
 
-  printTest() {
-    String nameHolder;
-    String dateHolder;
-    String toHolder;
-    String fromHolder;
-
+  saveFile() async {
     if (_titleController.text.isEmpty) {
       notifMessageRed("Please Enter a Title!");
       print(videoList.length);
-    } else {
+    } else if (titleChecker()) {
+      print("Already Taken");
       setState(() {
-        videoHolderList.add(VideoClass(
-            titleName: _titleController.text,
-            dateMod: '' +
-                DateTime.now().month.toString() +
-                '/' +
-                DateTime.now().day.toString() +
-                '/' +
-                DateTime.now().year.toString(),
-            fromDate: "Not Set",
-            toDate: "Not Set"));
+        titleTaken = true;
       });
-      for (int x = 0; x < videoHolderList.length; x++) {
-        if (x == 0) {
-          nameHolder = videoHolderList[x].titleName;
-          dateHolder = videoHolderList[x].dateMod;
-          toHolder = videoHolderList[x].toDate;
-          fromHolder = videoHolderList[x].fromDate;
-        } else if (x == videoHolderList.length - 1) {
-          nameHolder = '$nameHolder' + videoHolderList[x].titleName;
-          dateHolder = '$dateHolder' + videoHolderList[x].dateMod;
-          toHolder = '$toHolder' + videoHolderList[x].toDate;
-          fromHolder = '$fromHolder' + videoHolderList[x].fromDate;
-        } else {
-          nameHolder = '$nameHolder' + videoHolderList[x].titleName + '\n';
-          dateHolder = '$dateHolder' + videoHolderList[x].dateMod + '\n';
-          toHolder = '$toHolder' + videoHolderList[x].toDate + '\n';
-          fromHolder = '$fromHolder' + videoHolderList[x].fromDate + '\n';
-        }
-      }
-      writeName(nameHolder);
-      writeDate(dateHolder);
-      writeTo(toHolder);
-      writeFrom(fromHolder);
+    } else {
+      videoList.add(VideoClass(
+          titleName: _titleController.text,
+          dateMod: '' +
+              DateTime.now().month.toString() +
+              '/' +
+              DateTime.now().day.toString() +
+              '/' +
+              DateTime.now().year.toString(),
+          fromDate: "Not Set",
+          toDate: "Not Set"));
+      //print(videoList.length);
+      setState(() {
+        videoHolderList = videoList;
+      });
+      saveToFileLogic();
+
+      notifMessage(_titleController.text + " Added!");
+
+      _titleController.text = "";
+      setState(() {
+        titleTaken = false;
+      });
     }
   }
 
@@ -359,9 +410,15 @@ class _VideoPageState extends State<VideoPage> {
                                                               .bottom);
                                                   DatePicker.showTimePicker(
                                                     context,
+                                                    onChanged: (time) {
+                                                      // int toTime = int.parse(time.);
+                                                      // timeChecker();
+                                                    },
+                                                    showTitleActions:
+                                                        showTimeOption,
                                                     showSecondsColumn: false,
                                                     currentTime: DateTime.now(),
-                                                    onConfirm: (time) {
+                                                    onConfirm: (timeto) {
                                                       showSimpleNotification(
                                                           Text("Set Time To"),
                                                           background:
@@ -371,12 +428,34 @@ class _VideoPageState extends State<VideoPage> {
                                                                   .bottom);
                                                       DatePicker.showTimePicker(
                                                         context,
+                                                        showTitleActions:
+                                                            showTimeOption,
                                                         showSecondsColumn:
                                                             false,
                                                         currentTime:
                                                             DateTime.now(),
-                                                        onConfirm: (time) {
-                                                          print(time.hour);
+                                                        onConfirm: (timefrom) {
+                                                          videoList
+                                                              .elementAt(i)
+                                                              .toDate = timeto
+                                                                  .hour
+                                                                  .toString() +
+                                                              ":" +
+                                                              timeto.minute
+                                                                  .toString();
+                                                          videoList
+                                                              .elementAt(i)
+                                                              .fromDate = timefrom
+                                                                  .hour
+                                                                  .toString() +
+                                                              ":" +
+                                                              timefrom.minute
+                                                                  .toString();
+                                                          setState(() {
+                                                            videoHolderList =
+                                                                videoList;
+                                                          });
+                                                          saveToFileLogic();
                                                         },
                                                       );
                                                     },
@@ -443,7 +522,7 @@ class _VideoPageState extends State<VideoPage> {
                 ),
               ),
               Container(
-                height: 200,
+                height: 220,
                 width: 550,
                 child: Card(
                   color: Colors.grey[600],
@@ -471,7 +550,7 @@ class _VideoPageState extends State<VideoPage> {
                             ),
                           )),
                       Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(30, 5, 30, 15),
+                        padding: EdgeInsetsDirectional.fromSTEB(30, 5, 30, 20),
                         child: new Theme(
                             data: new ThemeData(primaryColor: Colors.black),
                             child: TextField(
@@ -479,8 +558,13 @@ class _VideoPageState extends State<VideoPage> {
                               textAlign: TextAlign.center,
                               style:
                                   TextStyle(color: Colors.white, fontSize: 20),
-                              decoration:
-                                  InputDecoration(hintText: 'Enter File Name'),
+                              decoration: titleTaken
+                                  ? InputDecoration(
+                                      hintText: 'Enter New File Name',
+                                      errorText: "Title Already Taken!")
+                                  : InputDecoration(
+                                      hintText: 'Enter File Name',
+                                    ),
                             )),
                       ),
                       ButtonTheme(
@@ -492,7 +576,7 @@ class _VideoPageState extends State<VideoPage> {
                                 borderRadius: BorderRadius.circular(9.0),
                               ),
                               color: Colors.white,
-                              onPressed: printTest,
+                              onPressed: saveFile,
                               child: Text(
                                 "Save",
                                 style: TextStyle(
@@ -527,14 +611,14 @@ class PopUp extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
-        _popNavigationResult(context, "1");
         return false;
       },
       child: Container(
           padding: EdgeInsets.all(10),
           color: Colors.white,
           child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [_getText(displayedText), _getButtons(context)])),
     );
@@ -557,18 +641,19 @@ class PopUp extends StatelessWidget {
           FlatButton(
             child: Text(
               'No',
-              style: TextStyle(color: Colors.black, fontSize: 15),
+              style: TextStyle(color: Colors.black, fontSize: 20),
             ),
             color: Colors.transparent,
             onPressed: () {
-              _popNavigationResult(context, "0");
+              _popNavigationResult(context, false);
             },
           ),
           FlatButton(
-            child: Text('Yes', style: TextStyle(color: Colors.black)),
+            child: Text('Yes',
+                style: TextStyle(color: Colors.black, fontSize: 20)),
             color: Colors.transparent,
             onPressed: () {
-              _popNavigationResult(context, "1");
+              _popNavigationResult(context, true);
             },
           ),
         ],
