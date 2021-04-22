@@ -125,35 +125,92 @@ class _VideoPageState extends State<VideoPage> {
     //     1);
   }
 
-  timeCheckList(from, to) {
+  timeCheckList(int timehold, String title, int timehold2, int run) {
     bool matched = false;
     for (var x in videoList) {
-      if (x.fromDate != "Not Set" && x.toDate != "Not Set") {
-        if (from >= int.parse(x.fromDate) && from <= int.parse(x.toDate)) {
-          matched = true;
-          break;
+      if (run == 1) {
+        if (x.titleName == title) {
+          print("Same Name");
+        } else {
+          if (x.fromDate != "Not Set" && x.toDate != "Not Set") {
+            List r = x.fromDate.split(":");
+            List y = x.toDate.split(":");
+
+            // if (timehold >=
+            //         singleDigitConverter(int.parse(r[0]), int.parse(r[1])) &&
+            //     timehold <=
+            //         singleDigitConverter(int.parse(y[0]), int.parse(y[1]))) {
+            //   matched = true;
+            //   break;
+            // }
+            if (timehold <=
+                    singleDigitConverter(int.parse(r[0]), int.parse(r[1])) &&
+                singleDigitConverter(int.parse(r[0]), int.parse(r[1])) <=
+                    timehold2) {
+              matched = true;
+              break;
+            } else if (timehold <=
+                    singleDigitConverter(int.parse(y[0]), int.parse(y[1])) &&
+                singleDigitConverter(int.parse(y[0]), int.parse(y[1])) <=
+                    timehold2) {
+              matched = true;
+              break;
+            }
+          }
         }
-        if (to >= int.parse(x.fromDate) && to <= int.parse(x.toDate)) {
-          matched = true;
-          break;
+      } else {
+        if (x.titleName == title) {
+          print("Same Name");
+        } else {
+          if (x.fromDate != "Not Set" && x.toDate != "Not Set") {
+            List r = x.fromDate.split(":");
+            List y = x.toDate.split(":");
+
+            if (timehold >=
+                    singleDigitConverter(int.parse(r[0]), int.parse(r[1])) &&
+                timehold <=
+                    singleDigitConverter(int.parse(y[0]), int.parse(y[1]))) {
+              matched = true;
+              break;
+            }
+          }
         }
       }
+
+      // print(int.parse(x.fromDate.replaceAll(":", '')));
+
     }
     return matched;
   }
 
-  timeChecker(int from, int to, int index) {
+  singleDigitConverter(conHour, conMinute) {
+    String holder;
+
+    if (conMinute < 10) {
+      holder = conHour.toString() + "0" + conMinute.toString();
+    } else {
+      holder = conHour.toString() + conMinute.toString();
+    }
+    return int.parse(holder);
+  }
+
+  timeChecker(int from, int to, String title) {
+    bool status = false;
     if (from >= to) {
-      notifMessageRed("Invalid Time!");
+      notifMessageRed(
+          "Time should be different at \"From\" and \"To\" or \"From\" is earlier than \" To\" ");
+      status = true;
       setState(() {
         showTimeOption = false;
       });
-    } else if (timeCheckList(from, to)) {
+    } else if (timeCheckList(from, title, to, 1)) {
       notifMessageRed("Time Conflict!");
+      status = true;
       setState(() {
         showTimeOption = false;
       });
     }
+    return status;
   }
 
   titleChecker() {
@@ -168,32 +225,36 @@ class _VideoPageState extends State<VideoPage> {
   }
 
   saveToFileLogic() {
-    String nameHolder;
-    String dateHolder;
-    String toHolder;
-    String fromHolder;
-    for (int x = 0; x < videoHolderList.length; x++) {
-      if (x == 0) {
-        nameHolder = videoHolderList[x].titleName + '\n';
-        dateHolder = videoHolderList[x].dateMod + '\n';
-        toHolder = videoHolderList[x].toDate + '\n';
-        fromHolder = videoHolderList[x].fromDate + '\n';
-      } else if (x == videoHolderList.length - 1) {
-        nameHolder = '$nameHolder' + videoHolderList[x].titleName;
-        dateHolder = '$dateHolder' + videoHolderList[x].dateMod;
-        toHolder = '$toHolder' + videoHolderList[x].toDate;
-        fromHolder = '$fromHolder' + videoHolderList[x].fromDate;
-      } else {
-        nameHolder = '$nameHolder' + videoHolderList[x].titleName + '\n';
-        dateHolder = '$dateHolder' + videoHolderList[x].dateMod + '\n';
-        toHolder = '$toHolder' + videoHolderList[x].toDate + '\n';
-        fromHolder = '$fromHolder' + videoHolderList[x].fromDate + '\n';
+    if (videoHolderList.isEmpty) {
+      print("Last Index");
+    } else {
+      String nameHolder;
+      String dateHolder;
+      String toHolder;
+      String fromHolder;
+      for (int x = 0; x < videoHolderList.length; x++) {
+        if (x == 0) {
+          nameHolder = videoHolderList[x].titleName + '\n';
+          dateHolder = videoHolderList[x].dateMod + '\n';
+          toHolder = videoHolderList[x].toDate + '\n';
+          fromHolder = videoHolderList[x].fromDate + '\n';
+        } else if (x == videoHolderList.length - 1) {
+          nameHolder = '$nameHolder' + videoHolderList[x].titleName;
+          dateHolder = '$dateHolder' + videoHolderList[x].dateMod;
+          toHolder = '$toHolder' + videoHolderList[x].toDate;
+          fromHolder = '$fromHolder' + videoHolderList[x].fromDate;
+        } else {
+          nameHolder = '$nameHolder' + videoHolderList[x].titleName + '\n';
+          dateHolder = '$dateHolder' + videoHolderList[x].dateMod + '\n';
+          toHolder = '$toHolder' + videoHolderList[x].toDate + '\n';
+          fromHolder = '$fromHolder' + videoHolderList[x].fromDate + '\n';
+        }
       }
+      writeName(nameHolder);
+      writeDate(dateHolder);
+      writeTo(toHolder);
+      writeFrom(fromHolder);
     }
-    writeName(nameHolder);
-    writeDate(dateHolder);
-    writeTo(toHolder);
-    writeFrom(fromHolder);
   }
 
   deleteVideo(int pos) {
@@ -218,11 +279,14 @@ class _VideoPageState extends State<VideoPage> {
 
   saveFile() async {
     if (_titleController.text.isEmpty) {
-      notifMessageRed("Please Enter a Title!");
-      print(videoList.length);
+      setState(() {
+        enterTitle = "Please Enter a Title!";
+        titleTaken = true;
+      });
     } else if (titleChecker()) {
       print("Already Taken");
       setState(() {
+        enterTitle = "Title Already Taken!";
         titleTaken = true;
       });
     } else {
@@ -411,53 +475,126 @@ class _VideoPageState extends State<VideoPage> {
                                                   DatePicker.showTimePicker(
                                                     context,
                                                     onChanged: (time) {
-                                                      // int toTime = int.parse(time.);
-                                                      // timeChecker();
+                                                      int fromTime =
+                                                          singleDigitConverter(
+                                                              time.hour,
+                                                              time.minute);
+
+                                                      if (timeCheckList(
+                                                          fromTime,
+                                                          videoHolderList[i]
+                                                              .titleName,
+                                                          0,
+                                                          0)) {
+                                                        setState(() {
+                                                          showTimeOption =
+                                                              false;
+                                                        });
+                                                        notifMessageRed(
+                                                            "Time Conflict");
+                                                      } else {
+                                                        setState(() {
+                                                          showTimeOption = true;
+                                                        });
+                                                      }
                                                     },
-                                                    showTitleActions:
-                                                        showTimeOption,
                                                     showSecondsColumn: false,
                                                     currentTime: DateTime.now(),
-                                                    onConfirm: (timeto) {
-                                                      showSimpleNotification(
-                                                          Text("Set Time To"),
-                                                          background:
-                                                              Colors.green,
-                                                          position:
-                                                              NotificationPosition
-                                                                  .bottom);
-                                                      DatePicker.showTimePicker(
-                                                        context,
-                                                        showTitleActions:
-                                                            showTimeOption,
-                                                        showSecondsColumn:
-                                                            false,
-                                                        currentTime:
-                                                            DateTime.now(),
-                                                        onConfirm: (timefrom) {
-                                                          videoList
-                                                              .elementAt(i)
-                                                              .toDate = timeto
-                                                                  .hour
-                                                                  .toString() +
-                                                              ":" +
-                                                              timeto.minute
-                                                                  .toString();
-                                                          videoList
-                                                              .elementAt(i)
-                                                              .fromDate = timefrom
-                                                                  .hour
-                                                                  .toString() +
-                                                              ":" +
-                                                              timefrom.minute
-                                                                  .toString();
-                                                          setState(() {
-                                                            videoHolderList =
-                                                                videoList;
-                                                          });
-                                                          saveToFileLogic();
-                                                        },
-                                                      );
+                                                    onConfirm: (timefrom) {
+                                                      if (showTimeOption) {
+                                                        showSimpleNotification(
+                                                            Text("Set Time To"),
+                                                            background:
+                                                                Colors.green,
+                                                            position:
+                                                                NotificationPosition
+                                                                    .bottom);
+                                                        DatePicker
+                                                            .showTimePicker(
+                                                          context,
+                                                          showSecondsColumn:
+                                                              false,
+                                                          currentTime: timefrom
+                                                              .add(
+                                                                  const Duration(
+                                                                      hours:
+                                                                          1)),
+                                                          onChanged: (time) {
+                                                            int toTime =
+                                                                singleDigitConverter(
+                                                                    time.hour,
+                                                                    time.minute);
+                                                            int fromTime =
+                                                                singleDigitConverter(
+                                                                    timefrom
+                                                                        .hour,
+                                                                    timefrom
+                                                                        .minute);
+
+                                                            if (timeChecker(
+                                                                fromTime,
+                                                                toTime,
+                                                                videoHolderList[
+                                                                        i]
+                                                                    .titleName)) {
+                                                              print("Blocked");
+                                                              setState(() {
+                                                                showTimeOption =
+                                                                    false;
+                                                              });
+                                                              // notifMessageRed(
+                                                              //     "Time Conflict");
+                                                            } else {
+                                                              print("Passed");
+                                                              setState(() {
+                                                                showTimeOption =
+                                                                    true;
+                                                              });
+                                                            }
+                                                            print(
+                                                                showTimeOption);
+                                                          },
+                                                          onConfirm: (timeto) {
+                                                            if (showTimeOption) {
+                                                              videoList
+                                                                  .elementAt(i)
+                                                                  .toDate = timeto
+                                                                      .hour
+                                                                      .toString() +
+                                                                  ":" +
+                                                                  timeto.minute
+                                                                      .toString();
+                                                              videoList
+                                                                  .elementAt(i)
+                                                                  .fromDate = timefrom
+                                                                      .hour
+                                                                      .toString() +
+                                                                  ":" +
+                                                                  timefrom
+                                                                      .minute
+                                                                      .toString();
+                                                              setState(() {
+                                                                videoHolderList =
+                                                                    videoList;
+                                                              });
+                                                              saveToFileLogic();
+                                                            } else {
+                                                              notifMessageRed(
+                                                                  "Time Conflict. Try Again..");
+                                                              setState(() {
+                                                                showTimeOption =
+                                                                    true;
+                                                              });
+                                                            }
+                                                          },
+                                                        );
+                                                      } else {
+                                                        notifMessageRed(
+                                                            "Time Conflict. Try Again..");
+                                                        setState(() {
+                                                          showTimeOption = true;
+                                                        });
+                                                      }
                                                     },
                                                   );
                                                 },
@@ -561,7 +698,7 @@ class _VideoPageState extends State<VideoPage> {
                               decoration: titleTaken
                                   ? InputDecoration(
                                       hintText: 'Enter New File Name',
-                                      errorText: "Title Already Taken!")
+                                      errorText: enterTitle)
                                   : InputDecoration(
                                       hintText: 'Enter File Name',
                                     ),
